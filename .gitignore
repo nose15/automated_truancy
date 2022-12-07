@@ -1,2 +1,4 @@
 *.log
 *.xml
+*.html
+credentials.txt
