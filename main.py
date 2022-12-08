@@ -25,8 +25,9 @@ def main():
 
     soup = BeautifulSoup(datatable_html, "html.parser")
 
-    data_table = DataTable(soup, "data/table.html", 2, 1)
-    print(data_table.get_data_as_dict())
+    data_table = DataTable(soup, "data/frequency_data.html", "data/frequency_data.json")
+
+    data_table.display()
 
 
 if __name__ == "__main__":

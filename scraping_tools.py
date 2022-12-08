@@ -6,8 +6,6 @@ from selenium.webdriver.firefox.options import Options
 import time
 
 
-
-
 class DataHarvester:
     __website = ""
 

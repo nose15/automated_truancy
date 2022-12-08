@@ -1,46 +1,42 @@
 from utils import Utils
 import webbrowser
+import json
+import os
 
 
 class DataTable:
-    name = ""
     html_file_path = ""
-    html = ""
+    json_file_path = ""
 
-    local_headers = []
-
-    rows = []
-
-    local_data = []
-
-    def __init__(self, html, html_file_path, header_columns, header_rows):
-        self.html = html
+    def __init__(self, html, html_file_path, json_file_path):
         self.html_file_path = html_file_path
-        self.header_columns = header_columns
-        self.header_rows = header_rows
+        self.json_file_path = json_file_path
 
-        self.__save_html()
-        rows = html.find_all("tr")
+        self.__save_html(html)
+        self.__save_json(html)
 
     def display(self):
-        path = self.html_file_path.split('/')[-1]
+        abs_cwd_path = os.getcwd().replace("/", "\\")
+        local_html_path = "\\" + self.html_file_path.replace("/", "\\")
+        path = abs_cwd_path + local_html_path
         webbrowser.open_new_tab(path)
 
-    def __save_html(self):
+    def __save_html(self, html):
+        clean_html = str(html).replace("tbody", "table")
         with open(self.html_file_path, 'w') as file:
-            file_html = str(self.html).replace("tbody", "table")
-            file.write(str(file_html))
+            file.write(str(clean_html))
 
-    def __get_html(self):
-        with open(self.html_file_path) as file:
-            html = file.read()
-        return html
+    def __save_json(self, html):
+        data_as_dict = self.__html_to_dict(html)
+        data_json = json.dumps(data_as_dict)
+        with open(self.json_file_path, 'w') as file:
+            file.write(data_json)
 
-    def get_data_as_dict(self):
+    def __html_to_dict(self, html):
         data = {}
 
-        table_headers = self.__extract_headers()
-        table_row_data = self.__extract_data()
+        table_headers = self.__extract_headers(html)
+        table_row_data = self.__extract_data(html)
 
         for row in table_row_data:
             title = row[0]
@@ -60,11 +56,16 @@ class DataTable:
 
         return data
 
-    def __extract_headers(self):
+    def __get_html(self):
+        with open(self.html_file_path) as file:
+            html = file.read()
+        return html
+
+    def __extract_headers(self, html):
         headers = {"term_headers": [], "frequency_headers": []}
         keys = list(headers.keys())
 
-        for tr_index, tr in enumerate(self.html.find_all("tr")):
+        for tr_index, tr in enumerate(html.find_all("tr")):
             if tr.find("th"):
                 tr_soup = Utils.soup_out_of_soup(tr)
                 row_headers = Utils.cleared_elements_from_soup(tr_soup, "th")
@@ -73,10 +74,10 @@ class DataTable:
 
         return headers
 
-    def __extract_data(self):
+    def __extract_data(self, html):
         row_data = []
         row_data_ = []
-        for tr_index, tr in enumerate(self.html.find_all("tr")):
+        for tr_index, tr in enumerate(html.find_all("tr")):
             tr_soup = Utils.soup_out_of_soup(tr)
             for td in tr_soup.find_all("td"):
                 td_text = td.text
