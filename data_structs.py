@@ -4,7 +4,7 @@ import json
 import os
 
 
-class DataTable:
+class AttendanceDataTable:
     html_file_path = ""
     json_file_path = ""
 
@@ -47,8 +47,8 @@ class DataTable:
                 subject_data[header] = {}
 
             for idx, value in enumerate(elements):
-                freq_header = table_headers["frequency_headers"][idx % len(table_headers["frequency_headers"])]
-                term_header = table_headers["term_headers"][idx // len(table_headers["frequency_headers"])]
+                freq_header = table_headers["attendance_headers"][idx % len(table_headers["attendance_headers"])]
+                term_header = table_headers["term_headers"][idx // len(table_headers["attendance_headers"])]
 
                 subject_data[term_header][freq_header] = float(value)
 
@@ -62,7 +62,7 @@ class DataTable:
         return html
 
     def __extract_headers(self, html):
-        headers = {"term_headers": [], "frequency_headers": []}
+        headers = {"term_headers": [], "attendance_headers": []}
         keys = list(headers.keys())
 
         for tr_index, tr in enumerate(html.find_all("tr")):
@@ -86,15 +86,57 @@ class DataTable:
                     td_text = "0"
                 row_data.append(td_text.strip())
 
-        current_arr = []
+        current_lst = []
         current_idx = 0
         for element in row_data[1:]:
             if current_idx > 21:
                 current_idx = 0
-                row_data_ .append(current_arr)
-                current_arr = []
+                row_data_ .append(current_lst)
+                current_lst = []
 
-            current_arr.append(element)
+            current_lst.append(element)
             current_idx += 1
 
         return row_data_
+
+
+class Timetable:
+    def __init__(self, html):
+        self.HTML = html
+
+    def __extract_data(self):
+        spans = self.HTML.find_all("span")[:-22]
+
+        lessons = []
+        for i in range(1, len(spans), 2):
+            lessons.append(spans[i])
+
+        clean_lessons = []
+        for lesson in lessons:
+            lesson_soup = Utils.soup_out_of_soup(lesson)
+            clean_lessons.append(lesson_soup.get_text(" "))
+
+
+class Subject:
+    name: str
+    teacher: str
+    importance: float
+    coolness: float
+
+    def __init__(self, name, teacher, importance, coolness):
+        self.name = name
+        self.teacher = teacher
+        self.importance = importance
+        self.coolness = coolness
+
+
+class Lesson:
+    starting_time: str
+    ending_time: str
+    subject: Subject
+
+    def __init__(self, name, teacher, importance, coolness):
+        self.name = name
+        self.teacher = teacher
+        self.importance = importance
+        self.coolness = coolness
